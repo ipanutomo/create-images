@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Image Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        #prompt {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        #prompt:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        #generateBtn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        #generateBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #result {
+            text-align: center;
+            min-height: 100px;
+        }
+        
+        .loading {
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            background: #fdf0f0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .generated-image {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: #219653;
+        }
+        
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 AI Image Generator</h1>
+        
+        <div class="input-group">
+            <input type="text" id="prompt" 
+                   placeholder="Describe the image you want to generate... (e.g., 'a beautiful sunset over mountains')" 
+                   autocomplete="off">
+            <button id="generateBtn" onclick="generateImage()">Generate Image</button>
+        </div>
+        
+        <div id="result">
+            <!-- Result will appear here -->
+        </div>
+    </div>
+
+    <script>
+        // Ganti dengan URL Worker-mu
+        const WORKER_URL = 'https://rough-truth-aab0.ipanutomo.workers.dev/';
+        
+        async function generateImage() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const resultDiv = document.getElementById('result');
+            const generateBtn = document.getElementById('generateBtn');
+            
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            resultDiv.innerHTML = '<div class="loading">🔄 Generating your image... This may take 10-30 seconds</div>';
+            
+            try {
+                console.log('Sending request to worker...');
+                
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    // Try to parse error message
+                    try {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    } catch (e) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                }
+                
+                // Convert response to image
+                const imageBlob = await response.blob();
+                
+                if (imageBlob.size === 0) {
+                    throw new Error('Received empty image response');
+                }
+                
+                const imageUrl = URL.createObjectURL(imageBlob);
+                
+                resultDiv.innerHTML = `
+                    <h3>Generated Image:</h3>
+                    <img src="${imageUrl}" class="generated-image" alt="Generated image">
+                    <br>
+                    <a href="${imageUrl}" download="ai-generated-image.png" class="download-btn">
+                        💾 Download Image
+                    </a>
+                `;
+                
+                console.log('Image generated successfully!');
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                        <br><br>
+                        <small>Tips: Make sure your prompt is descriptive and appropriate.</small>
+                    </div>
+                `;
+            } finally {
+                // Reset button
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Image';
+            }
+        }
+        
+        // Allow Enter key to trigger generation
+        document.getElementById('prompt').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateImage();
+            }
+        });
+    </script>
+</body>
+</html>

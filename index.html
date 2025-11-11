@@ -1,157 +1,102 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FLUX Pro Max - AI Image Generator</title>
+  <title>FLUX Pro Max - Replicate</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root {
-      --bg: #f0f2f5; --card: #fff; --text: #1a1a1a; --primary: #6366f1; --accent: #10b981;
-    }
-    [data-theme="dark"] {
-      --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --primary: #818cf8; --accent: #34d399;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height:100vh; padding:20px; transition:0.3s; }
-    .container { max-width:900px; margin:0 auto; background:var(--card); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
-    h1 { text-align:center; font-size:2.2rem; margin-bottom:24px; color:var(--primary); }
-    .input-group { margin-bottom:16px; }
-    label { display:block; font-weight:600; margin-bottom:6px; font-size:0.95rem; }
-    textarea { width:100%; padding:14px; border:2px solid #e2e8f0; border-radius:10px; font-size:1rem; resize:vertical; min-height:90px; background:var(--bg); color:var(--text); }
-    textarea:focus { outline:none; border-color:var(--primary); }
-    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
-    .chip { background:#e0e7ff; color:#4f46e5; padding:6px 14px; border-radius:20px; font-size:0.85rem; cursor:pointer; transition:0.2s; }
-    .chip:hover { background:#c7d2fe; }
-    button { width:100%; padding:16px; background:var(--primary); color:white; border:none; border-radius:10px; font-size:1.1rem; font-weight:600; cursor:pointer; margin-top:8px; transition:0.2s; }
-    button:disabled { opacity:0.6; cursor:not-allowed; }
-    button:hover:not(:disabled) { background:#4f46e5; transform:translateY(-1px); }
-    .result { text-align:center; margin-top:24px; }
-    .loading { color:var(--primary); font-weight:500; padding:20px; }
-    .error { background:#fee2e2; color:#dc2626; padding:16px; border-radius:10px; border-left:4px solid #dc2626; }
-    .generated-image { max-width:100%; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); margin:16px 0; }
-    .download { display:inline-block; background:var(--accent); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600; margin:8px; }
-    .download:hover { background:#059669; }
-    .theme-toggle { position:fixed; bottom:20px; right:20px; background:var(--primary); color:white; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-size:1.5rem; }
-    .gallery { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:24px; }
-    .gallery img { width:100%; border-radius:8px; cursor:pointer; transition:0.2s; }
-    .gallery img:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
-    @media (max-width:600px) { h1 { font-size:1.8rem; } .container { padding:16px; } }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}
+    .container{max-width:900px;margin:0 auto;background:white;border-radius:15px;padding:30px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    h1{text-align:center;color:#333;margin-bottom:20px;font-size:2.2rem}
+    textarea{width:100%;padding:15px;border:2px solid #ddd;border-radius:8px;font-size:16px;resize:vertical;min-height:80px}
+    textarea:focus{outline:none;border-color:#667eea}
+    button{padding:16px;background:#667eea;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;width:100%;margin-top:10px}
+    button:disabled{opacity:0.6;cursor:not-allowed}
+    .loading{color:#667eea;padding:20px;text-align:center}
+    .error{color:#e74c3c;background:#fdf0f0;padding:15px;border-radius:8px;border-left:4px solid #e74c3c}
+    .chip{background:#e9ecef;padding:6px 14px;border-radius:20px;font-size:0.9em;cursor:pointer;margin:5px;display:inline-block}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:20px}
+    .gallery img{width:100%;border-radius:8px;cursor:pointer}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>FLUX Pro Max</h1>
-    <p style="text-align:center; color:#64748b; margin-bottom:20px;">Generate gambar 1024×1024 dalam <strong>4 detik</strong> — Gratis & Unlimited!</p>
+<div class="container">
+  <h1>FLUX Pro Max</h1>
+  <p style="text-align:center;color:#666;margin-bottom:20px">Replicate: <strong>100 gambar GRATIS/hari</strong> + Upload gambar!</p>
 
-    <div class="input-group">
-      <label>Positive Prompt</label>
-      <textarea id="positive" placeholder="cyberpunk cat with neon glasses, futuristic city, ultra detailed..."></textarea>
-    </div>
-
-    <div class="input-group">
-      <label>Negative Prompt (opsional)</label>
-      <textarea id="negative" placeholder="blurry, ugly, deformed, watermark, text, low quality"></textarea>
-    </div>
-
-    <div class="chips">
-      <div class="chip" onclick="set('cyberpunk cat with neon glasses','blurry, ugly')">Cyber Cat</div>
-      <div class="chip" onclick="set('snow cat in winter forest, fluffy fur','')">Snow Cat</div>
-      <div class="chip" onclick="set('anime girl with cat ears, kawaii, studio ghibli','realistic, photo')">Anime Cat Girl</div>
-      <div class="chip" onclick="set('indomie goreng with extra egg, realistic food photo','cartoon, blurry')">Indomie Legend</div>
-    </div>
-
-    <button id="btn" onclick="generate()">Generate with FLUX (4 Detik)</button>
-    <div id="result"></div>
+  <div style="margin-bottom:15px">
+    <label><strong>Positive Prompt</strong></label>
+    <textarea id="positive" placeholder="cyberpunk cat with neon glasses..."></textarea>
   </div>
 
-  <div class="theme-toggle" onclick="toggleTheme()">Moon</div>
+  <div style="margin-bottom:15px">
+    <label><strong>Negative Prompt</strong></label>
+    <textarea id="negative" placeholder="blurry, ugly, deformed"></textarea>
+  </div>
 
-  <script>
-    const WORKER_URL = 'https://flux-pro-max.ipanutomo.workers.dev';
-    const gallery = [];
+  <div style="margin-bottom:15px">
+    <label><strong>Reference Image (opsional)</strong></label>
+    <input type="file" id="image" accept="image/*" style="width:100%;padding:10px">
+  </div>
 
-    function set(pos, neg) {
-      document.getElementById('positive').value = pos;
-      document.getElementById('negative').value = neg;
-    }
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px">
+    <div class="chip" onclick="set('cyberpunk cat with neon glasses','blurry, ugly')">Cyber Cat</div>
+    <div class="chip" onclick="set('snow cat','')">Snow Cat</div>
+    <div class="chip" onclick="set('anime girl cat ears','realistic')">Anime Cat</div>
+  </div>
 
-    function toggleTheme() {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      document.body.setAttribute('data-theme', isDark ? '' : 'dark');
-      document.querySelector('.theme-toggle').textContent = isDark ? 'Moon' : 'Sun';
-    }
+  <button id="btn" onclick="generate()">Generate with Replicate (15-30 Detik)</button>
+  <div id="result"></div>
+</div>
 
-    async function generate() {
-      const pos = document.getElementById('positive').value.trim();
-      const neg = document.getElementById('negative').value.trim();
-      const btn = document.getElementById('btn');
-      const result = document.getElementById('result');
+<script>
+  const WORKER_URL = 'https://flux-pro-max.ipanutomo.workers.dev';
 
-      if (!pos) return alert('Positive prompt wajib diisi!');
+  function set(pos, neg) {
+    document.getElementById('positive').value = pos;
+    document.getElementById('negative').value = neg;
+  }
 
-      btn.disabled = true;
-      btn.textContent = 'FLUX lagi ngebut... (max 15 detik)';
-      result.innerHTML = '<div class="loading">Sedang generate 1024×1024... Sabar 4 detik doang!</div>';
+  async function generate() {
+    const pos = document.getElementById('positive').value.trim();
+    const neg = document.getElementById('negative').value.trim();
+    const file = document.getElementById('image').files[0];
+    const btn = document.getElementById('btn');
+    const result = document.getElementById('result');
 
-      const payload = { prompt: pos + (neg ? `, --no ${neg}` : "") };
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+    if (!pos) return alert('Prompt wajib!');
 
-      try {
-        const res = await fetch(WORKER_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
+    btn.disabled = true;
+    btn.textContent = 'Replicate lagi generate... (15-30 detik)';
+    result.innerHTML = '<div class="loading">Sedang proses, sabar ya...</div>';
 
-        clearTimeout(timeout);
+    const form = new FormData();
+    form.append('prompt', pos);
+    if (neg) form.append('negative', neg);
+    if (file) form.append('image', file);
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Server error');
-        }
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        // Simpan ke gallery
-        gallery.unshift(url);
-        if (gallery.length > 12) gallery.pop();
-
-        result.innerHTML = `
-          <img src="${url}" class="generated-image" onclick="openImage('${url}')">
-          <br>
-          <a href="${url}" download="flux-${Date.now()}.png" class="download">Download 1024×1024</a>
-          <p style="margin-top:12px; font-size:0.9rem; color:#64748b;">
-            <strong>Prompt:</strong> ${pos}<br>
-            ${neg ? `<strong>Negative:</strong> ${neg}` : ''}
-          </p>
-          <div class="gallery">
-            ${gallery.map(img => `<img src="${img}" onclick="openImage('${img}')">`).join('')}
-          </div>
-        `;
-
-      } catch (e) {
-        result.innerHTML = `<div class="error"><strong>Error:</strong> ${e.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Generate with FLUX (4 Detik)';
+    try {
+      const res = await fetch(WORKER_URL, { method: 'POST', body: form });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Server error');
       }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      result.innerHTML = `
+        <img src="${url}" style="max-width:100%;border-radius:12px;margin:15px 0">
+        <a href="${url}" download="replicate-${Date.now()}.png" style="background:#10b981;color:white;padding:10px 20px;border-radius:8px;text-decoration:none">
+          Download 1024×1024
+        </a>
+      `;
+    } catch (e) {
+      result.innerHTML = `<div class="error">Error: ${e.message}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Generate with Replicate (15-30 Detik)';
     }
-
-    function openImage(url) {
-      const win = window.open();
-      win.document.write(`
-        <style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:center;height:100vh}</style>
-        <img src="${url}" style="max-width:100%;max-height:100vh;border-radius:8px">
-      `);
-    }
-
-    // Auto dark mode berdasarkan sistem
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      toggleTheme();
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
